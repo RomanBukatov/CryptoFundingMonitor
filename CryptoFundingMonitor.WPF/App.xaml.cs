@@ -29,7 +29,8 @@
              ConfigureServices();
 
              // Создаем главное окно с использованием DI
-             var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+             var mainViewModel = ServiceProvider.GetRequiredService<MainViewModel>();
+             var mainWindow = new MainWindow(mainViewModel);
              mainWindow.Show();
          }
 
@@ -50,9 +51,6 @@
 
              // Регистрируем ViewModel с внедрением зависимостей
              services.AddTransient<MainViewModel>();
-
-             // Регистрируем главное окно
-             services.AddTransient<MainWindow>();
 
              ServiceProvider = services.BuildServiceProvider();
          }

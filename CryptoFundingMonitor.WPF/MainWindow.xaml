@@ -4,9 +4,221 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CryptoFundingMonitor.WPF"
+        xmlns:converters="clr-namespace:CryptoFundingMonitor.WPF.Converters"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Мониторинг Funding Rates" Height="700" Width="900"
+        WindowStartupLocation="CenterScreen">
 
+    <Grid Margin="10">
+        <Grid.Resources>
+            <converters:BoolToStartStopConverter x:Key="BoolToStartStopConverter"/>
+            <converters:BoolToStartStopColorConverter x:Key="BoolToStartStopColorConverter"/>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Секция бирж -->
+        <GroupBox Header="Настройки бирж" Grid.Row="0" Margin="0,0,0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Binance -->
+                <GroupBox Header="Binance" Grid.Row="0" Margin="0,0,0,5">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Row="0" Content="Включить" IsChecked="{Binding IsBinanceEnabled}"
+                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                        <Label Grid.Row="1" Content="Порог:" VerticalAlignment="Center" Margin="0,5,5,0"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5,10,0"
+                                 Text="{Binding BinanceThreshold, StringFormat=N4}"
+                                 ToolTip="Пороговое значение Funding Rate"/>
+
+                        <Label Grid.Row="2" Content="API ключ:" VerticalAlignment="Center" Margin="0,5,5,0"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,5,0,0"
+                                 Text="{Binding BinanceApiKey}"
+                                 ToolTip="API ключ биржи Binance"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- Bybit -->
+                <GroupBox Header="Bybit" Grid.Row="1" Margin="0,0,0,5">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Row="0" Content="Включить" IsChecked="{Binding IsBybitEnabled}"
+                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                        <Label Grid.Row="1" Content="Порог:" VerticalAlignment="Center" Margin="0,5,5,0"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5,10,0"
+                                 Text="{Binding BybitThreshold, StringFormat=N4}"
+                                 ToolTip="Пороговое значение Funding Rate"/>
+
+                        <Label Grid.Row="2" Content="API ключ:" VerticalAlignment="Center" Margin="0,5,5,0"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,5,0,0"
+                                 Text="{Binding BybitApiKey}"
+                                 ToolTip="API ключ биржи Bybit"/>
+                    </Grid>
+                </GroupBox>
+
+                <!-- MEXC -->
+                <GroupBox Header="MEXC" Grid.Row="2">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Row="0" Content="Включить" IsChecked="{Binding IsMexcEnabled}"
+                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                        <Label Grid.Row="1" Content="Порог:" VerticalAlignment="Center" Margin="0,5,5,0"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5,10,0"
+                                 Text="{Binding MexcThreshold, StringFormat=N4}"
+                                 ToolTip="Пороговое значение Funding Rate"/>
+
+                        <Label Grid.Row="2" Content="API ключ:" VerticalAlignment="Center" Margin="0,5,5,0"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,5,0,0"
+                                 Text="{Binding MexcApiKey}"
+                                 ToolTip="API ключ биржи MEXC"/>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </GroupBox>
+
+        <!-- Секция Telegram -->
+        <GroupBox Header="Настройки Telegram" Grid.Row="1" Margin="0,0,0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Content="Токен бота:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Margin="5,0"
+                         Text="{Binding TelegramBotToken}"
+                         ToolTip="Токен Telegram бота для отправки уведомлений"/>
+
+                <Label Grid.Row="1" Content="Канал 1:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Margin="5,0"
+                         Text="{Binding TelegramChannel1Id}"
+                         ToolTip="ID первого Telegram канала"/>
+
+                <Label Grid.Row="1" Grid.Column="2" Content="Канал 2:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="1" Grid.Column="3" Margin="5,0"
+                         Text="{Binding TelegramChannel2Id}"
+                         ToolTip="ID второго Telegram канала"/>
+
+                <CheckBox Grid.Row="2" Content="Включить канал 1" IsChecked="{Binding IsTelegramChannel1Enabled}"
+                          VerticalAlignment="Center" Margin="0,5,0,0"/>
+                <CheckBox Grid.Row="2" Grid.Column="2" Content="Включить канал 2" IsChecked="{Binding IsTelegramChannel2Enabled}"
+                          VerticalAlignment="Center" Margin="0,5,0,0"/>
+
+                <Label Grid.Row="3" Content="ID каналов можно получить у @userinfobot в Telegram" Grid.ColumnSpan="4"
+                       FontSize="10" Foreground="Gray" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Секция Trade Bot -->
+        <GroupBox Header="Настройки Trade Bot" Grid.Row="2" Margin="0,0,0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Content="URL:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Margin="5,0"
+                         Text="{Binding TradeBotUrl}"
+                         ToolTip="URL адрес торгового бота"/>
+
+                <CheckBox Grid.Row="1" Grid.Column="1" Content="Включить ссылку в сообщениях" IsChecked="{Binding IsTradeBotEnabled}"
+                          VerticalAlignment="Center" Margin="0,5,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Панель управления -->
+        <Grid Grid.Row="3" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Статус -->
+            <Label Grid.Column="0" Content="Статус:" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,10,0"/>
+            
+            <!-- Индикатор-кружок -->
+            <Ellipse Grid.Column="2" Width="30" Height="30" Margin="0,0,15,0"
+                     Fill="{Binding StatusIndicatorColor}"
+                     Stroke="Gray" StrokeThickness="2"
+                     ToolTip="Статус мониторинга"/>
+
+            <!-- Кнопка Старт/Стоп -->
+            <Button Grid.Column="3"
+                    Content="{Binding IsMonitoring, Converter={StaticResource BoolToStartStopConverter}}"
+                    Command="{Binding ToggleMonitoringCommand}"
+                    Width="120" Height="35"
+                    FontSize="14"
+                    FontWeight="Bold"
+                    Foreground="White"
+                    Background="{Binding IsMonitoring, Converter={StaticResource BoolToStartStopColorConverter}}"
+                    BorderThickness="0"
+                    Cursor="Hand"/>
+        </Grid>
     </Grid>
 </Window>

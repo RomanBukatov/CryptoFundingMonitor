@@ -19,6 +19,16 @@ namespace CryptoFundingMonitor.WPF
         public MainWindow()
         {
             InitializeComponent();
+            // DataContext будет установлен в App.xaml.cs через DI
+        }
+
+        /// <summary>
+        /// Конструктор с внедрением зависимостей
+        /// </summary>
+        /// <param name="mainViewModel">MainViewModel с внедренными зависимостями</param>
+        public MainWindow(ViewModels.MainViewModel mainViewModel) : this()
+        {
+            DataContext = mainViewModel;
         }
     }
 }

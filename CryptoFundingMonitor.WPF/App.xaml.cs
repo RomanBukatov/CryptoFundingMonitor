@@ -40,18 +40,25 @@
          private static void ConfigureServices()
          {
              var services = new ServiceCollection();
-
+ 
              // Регистрируем сервисы бирж как реализации IBrokerApiService
              services.AddTransient<IBrokerApiService, BybitApiService>();
              services.AddTransient<IBrokerApiService, BinanceApiService>();
              services.AddTransient<IBrokerApiService, MexcApiService>();
-
-             // Регистрируем сервис уведомлений
-             services.AddTransient<INotificationService, TelegramNotificationService>();
-
+ 
+             // Регистрируем конкретные типы для получения через DI
+             services.AddTransient<BybitApiService>();
+             services.AddTransient<BinanceApiService>();
+             services.AddTransient<MexcApiService>();
+ 
+             // Регистрируем сервис уведомлений как Singleton
+             // ВАЖНО: Сервис будет создан один раз и переиспользован
+             services.AddSingleton<TelegramNotificationService>();
+             services.AddSingleton<INotificationService>(sp => sp.GetRequiredService<TelegramNotificationService>());
+ 
              // Регистрируем ViewModel с внедрением зависимостей
              services.AddTransient<MainViewModel>();
-
+ 
              ServiceProvider = services.BuildServiceProvider();
          }
      }

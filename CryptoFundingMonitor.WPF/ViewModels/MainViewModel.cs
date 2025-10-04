@@ -173,6 +173,12 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                 // Получаем сервис уведомлений из DI контейнера
                 _notificationService = _serviceProvider.GetRequiredService<TelegramNotificationService>();
 
+                // Инициализируем Telegram сервис с токеном бота
+                if (_notificationService is TelegramNotificationService telegramService)
+                {
+                    telegramService.Initialize(TelegramBotToken);
+                }
+
                 // Проверяем, что хотя бы одна биржа активна
                 if (!IsBinanceEnabled && !IsBybitEnabled && !IsMexcEnabled)
                 {

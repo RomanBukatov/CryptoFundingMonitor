@@ -13,6 +13,7 @@
         <Grid.Resources>
             <converters:BoolToStartStopConverter x:Key="BoolToStartStopConverter"/>
             <converters:BoolToStartStopColorConverter x:Key="BoolToStartStopColorConverter"/>
+            <converters:PercentToDecimalConverter x:Key="PercentToDecimalConverter"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -51,9 +52,17 @@
                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
 
                         <Label Grid.Row="1" Content="Порог:" VerticalAlignment="Center" Margin="0,5,5,0"/>
-                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5,10,0"
-                                 Text="{Binding BinanceThreshold, StringFormat=N4}"
-                                 ToolTip="Пороговое значение Funding Rate"/>
+                        <Grid Grid.Row="1" Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Margin="0,5,5,0"
+                                     Text="{Binding BinanceThreshold, StringFormat=N2}"
+                                     ToolTip="Пороговое значение Funding Rate в процентах"/>
+                            <TextBlock Grid.Column="1" Text="%" VerticalAlignment="Center"
+                                       Margin="0,5,10,0" FontWeight="Bold"/>
+                        </Grid>
 
                         <Label Grid.Row="2" Content="API ключ:" VerticalAlignment="Center" Margin="0,5,5,0"/>
                         <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,5,0,0"
@@ -81,9 +90,17 @@
                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
 
                         <Label Grid.Row="1" Content="Порог:" VerticalAlignment="Center" Margin="0,5,5,0"/>
-                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5,10,0"
-                                 Text="{Binding BybitThreshold, StringFormat=N4}"
-                                 ToolTip="Пороговое значение Funding Rate"/>
+                        <Grid Grid.Row="1" Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Margin="0,5,5,0"
+                                     Text="{Binding BybitThreshold, StringFormat=N2}"
+                                     ToolTip="Пороговое значение Funding Rate в процентах"/>
+                            <TextBlock Grid.Column="1" Text="%" VerticalAlignment="Center"
+                                       Margin="0,5,10,0" FontWeight="Bold"/>
+                        </Grid>
 
                         <Label Grid.Row="2" Content="API ключ:" VerticalAlignment="Center" Margin="0,5,5,0"/>
                         <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,5,0,0"
@@ -111,9 +128,17 @@
                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
 
                         <Label Grid.Row="1" Content="Порог:" VerticalAlignment="Center" Margin="0,5,5,0"/>
-                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5,10,0"
-                                 Text="{Binding MexcThreshold, StringFormat=N4}"
-                                 ToolTip="Пороговое значение Funding Rate"/>
+                        <Grid Grid.Row="1" Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Margin="0,5,5,0"
+                                     Text="{Binding MexcThreshold, StringFormat=N2}"
+                                     ToolTip="Пороговое значение Funding Rate в процентах"/>
+                            <TextBlock Grid.Column="1" Text="%" VerticalAlignment="Center"
+                                       Margin="0,5,10,0" FontWeight="Bold"/>
+                        </Grid>
 
                         <Label Grid.Row="2" Content="API ключ:" VerticalAlignment="Center" Margin="0,5,5,0"/>
                         <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,5,0,0"

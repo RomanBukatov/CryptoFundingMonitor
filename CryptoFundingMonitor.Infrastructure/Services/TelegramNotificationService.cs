@@ -1,5 +1,6 @@
 using CryptoFundingMonitor.Core.Models;
 using CryptoFundingMonitor.Core.Services;
+using System.Diagnostics;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -11,15 +12,26 @@ namespace CryptoFundingMonitor.Infrastructure.Services
     /// </summary>
     public class TelegramNotificationService : INotificationService
     {
-        private readonly ITelegramBotClient _botClient;
+        private ITelegramBotClient _botClient;
+        private string _botToken;
 
         /// <summary>
         /// Инициализирует новый экземпляр TelegramNotificationService
         /// </summary>
-        /// <param name="botToken">Токен Telegram бота</param>
-        public TelegramNotificationService(string botToken)
+        public TelegramNotificationService()
         {
-            _botClient = new TelegramBotClient(botToken);
+            // Конструктор без параметров для DI
+        }
+
+        /// <summary>
+        /// Инициализирует сервис с токеном бота
+        /// </summary>
+        /// <param name="botToken">Токен Telegram бота</param>
+        public void Initialize(string botToken)
+        {
+            _botToken = botToken ?? throw new ArgumentNullException(nameof(botToken));
+            _botClient = new TelegramBotClient(_botToken);
+            Debug.WriteLine($"[TelegramNotificationService] Инициализирован с токеном: {_botToken.Substring(0, 10)}...");
         }
 
         /// <summary>
@@ -32,7 +44,15 @@ namespace CryptoFundingMonitor.Infrastructure.Services
         {
             try
             {
+                if (_botClient == null)
+                {
+                    throw new InvalidOperationException("TelegramNotificationService не инициализирован. Вызовите Initialize() перед использованием.");
+                }
+
                 var message = FormatMessage(signal, tradeBotUrl);
+
+                Debug.WriteLine($"[TelegramNotificationService] Отправка сообщения в чат {chatId}");
+                Debug.WriteLine($"[TelegramNotificationService] Текст сообщения:\n{message}");
 
                 await _botClient.SendMessage(
                     chatId: new ChatId(chatId),
@@ -40,9 +60,13 @@ namespace CryptoFundingMonitor.Infrastructure.Services
                     parseMode: ParseMode.Markdown,
                     linkPreviewOptions: new LinkPreviewOptions { IsDisabled = true }
                 );
+
+                Debug.WriteLine($"[TelegramNotificationService] Сообщение успешно отправлено в чат {chatId}");
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"[TelegramNotificationService] ОШИБКА при отправке: {ex.Message}");
+                Debug.WriteLine($"[TelegramNotificationService] Stack trace: {ex.StackTrace}");
                 throw new Exception($"Ошибка при отправке уведомления в Telegram: {ex.Message}", ex);
             }
         }

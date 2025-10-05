@@ -40,6 +40,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <Grid.ColumnDefinitions>
@@ -68,6 +69,11 @@
                         <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,5,0,0"
                                  Text="{Binding BinanceApiKey}"
                                  ToolTip="API ключ биржи Binance"/>
+
+                        <Label Grid.Row="3" Content="Secret ключ:" VerticalAlignment="Center" Margin="0,5,5,0"/>
+                        <PasswordBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,5,0,0"
+                                     PasswordChanged="BinanceSecretKeyPasswordBox_PasswordChanged"
+                                     ToolTip="Secret ключ биржи Binance"/>
                     </Grid>
                 </GroupBox>
 
@@ -75,6 +81,7 @@
                 <GroupBox Header="Bybit" Grid.Row="1" Margin="0,0,0,5">
                     <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -113,6 +120,7 @@
                 <GroupBox Header="MEXC" Grid.Row="2">
                     <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>

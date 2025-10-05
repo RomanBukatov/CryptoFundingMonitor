@@ -70,6 +70,7 @@ namespace CryptoFundingMonitor.Infrastructure.Services
                             Pair: ticker.Symbol,
                             CurrentPrice: currentPrice,
                             FundingRate: fundingRate,
+                            TakeProfitPrice: null,
                             Timestamp: DateTime.UtcNow
                         );
 

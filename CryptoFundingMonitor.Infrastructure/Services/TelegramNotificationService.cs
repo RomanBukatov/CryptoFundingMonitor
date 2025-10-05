@@ -31,7 +31,7 @@ namespace CryptoFundingMonitor.Infrastructure.Services
         {
             _botToken = botToken ?? throw new ArgumentNullException(nameof(botToken));
             _botClient = new TelegramBotClient(_botToken);
-            Debug.WriteLine($"[TelegramNotificationService] Инициализирован с токеном: {_botToken.Substring(0, 10)}...");
+            Debug.WriteLine($"[TelegramNotificationService] Инициализирован");
         }
 
         /// <summary>
@@ -76,9 +76,12 @@ namespace CryptoFundingMonitor.Infrastructure.Services
         /// </summary>
         private string FormatMessage(FundingRateSignal signal, string tradeBotUrl)
         {
+            // Получаем эмодзи для биржи
+            var exchangeEmoji = GetExchangeEmoji(signal.ExchangeName);
+
             // Получаем ссылку на биржу
             var exchangeUrl = GetExchangeUrl(signal.ExchangeName, signal.Pair);
-            
+
             // Получаем ссылку на CoinGlass
             var coinGlassUrl = GetCoinGlassUrl(signal.ExchangeName, signal.Pair);
 
@@ -86,10 +89,25 @@ namespace CryptoFundingMonitor.Infrastructure.Services
             var timestamp = signal.Timestamp.ToString("yyyy-MM-dd HH:mm:ss") + " UTC";
 
             // Формируем сообщение с Markdown разметкой
-            var message = $"⚫️ [{signal.ExchangeName}]({exchangeUrl}) - [{signal.Symbol}]({coinGlassUrl}) - {signal.Pair}\n";
-            message += "🟢 Analyzing Buy ⬆️\n";
+            // Название биржи кликабельно → ведет на биржу
+            // Название монеты кликабельно → ведет на CoinGlass
+            // Пара справа кликабельна → копирует название монеты
+            // Убираем подчеркивание из пары для корректного отображения при копировании
+            var displayPair = signal.Pair.Replace("_", "");
+            var message = $"{exchangeEmoji} [{signal.ExchangeName}]({exchangeUrl}) - [{signal.Symbol}]({coinGlassUrl}) - `{displayPair}`\n";
+
+            // Динамическое определение сигнала на основе FundingRate (инвертированная логика)
+            var signalText = signal.FundingRate < 0
+                ? "🟢 Analyzing Buy ⬆️"
+                : "🔴 Analyzing Sell ⬇️";
+            message += $"{signalText}\n";
             message += $"🅿️ {signal.CurrentPrice:F4}\n";
-            message += $"📃 {signal.FundingRate:F4}\n";
+
+            // Добавляем Take Profit только для BUY сигналов
+            if (signal.TakeProfitPrice.HasValue)
+            {
+                message += $"✅ Take Profit: {signal.TakeProfitPrice.Value:F4}\n";
+            }
 
             // Добавляем ссылку Trade только если URL предоставлен
             if (!string.IsNullOrWhiteSpace(tradeBotUrl))
@@ -111,8 +129,22 @@ namespace CryptoFundingMonitor.Infrastructure.Services
             {
                 "BINANCE" => $"https://www.binance.com/en/futures/{pair}",
                 "BYBIT" => $"https://www.bybit.com/trade/usdt/{pair}",
-                "MEXC" => $"https://futures.mexc.com/exchange/{pair.Replace("USDT", "_USDT")}",
+                "MEXC" => $"https://futures.mexc.com/exchange/{pair}",
                 _ => $"https://www.{exchangeName.ToLower()}.com"
+            };
+        }
+
+        /// <summary>
+        /// Возвращает эмодзи для биржи
+        /// </summary>
+        private string GetExchangeEmoji(string exchangeName)
+        {
+            return exchangeName.ToUpper() switch
+            {
+                "BINANCE" => "🟡", // Желтый шарик для Binance
+                "BYBIT" => "⚫️",   // Черный шарик для Bybit
+                "MEXC" => "🔵",     // Синий шарик для Mexc
+                _ => "⚫️"         // По умолчанию черный шарик
             };
         }
 

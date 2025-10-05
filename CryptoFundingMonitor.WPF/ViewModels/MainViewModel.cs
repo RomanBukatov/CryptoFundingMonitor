@@ -42,6 +42,9 @@ namespace CryptoFundingMonitor.WPF.ViewModels
         private string _binanceApiKey = string.Empty;
 
         [ObservableProperty]
+        private string _binanceApiSecret = string.Empty;
+
+        [ObservableProperty]
         private string _bybitApiKey = string.Empty;
 
         [ObservableProperty]
@@ -52,7 +55,7 @@ namespace CryptoFundingMonitor.WPF.ViewModels
         #region Чекбоксы включения бирж
 
         [ObservableProperty]
-        private bool _isBinanceEnabled = false;
+        private bool _isBinanceEnabled = true;
 
         [ObservableProperty]
         private bool _isBybitEnabled = true;
@@ -189,6 +192,12 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                     telegramService.Initialize(TelegramBotToken);
                 }
 
+                // Логируем статус всех бирж перед запуском
+                Debug.WriteLine($"[STARTUP] Статус бирж перед запуском:");
+                Debug.WriteLine($"[STARTUP] IsBinanceEnabled: {IsBinanceEnabled}");
+                Debug.WriteLine($"[STARTUP] IsBybitEnabled: {IsBybitEnabled}");
+                Debug.WriteLine($"[STARTUP] IsMexcEnabled: {IsMexcEnabled}");
+
                 // Проверяем, что хотя бы одна биржа активна
                 if (!IsBinanceEnabled && !IsBybitEnabled && !IsMexcEnabled)
                 {
@@ -244,9 +253,17 @@ namespace CryptoFundingMonitor.WPF.ViewModels
             }
 
             // Проверяем настройки активных бирж
-            if (IsBinanceEnabled && string.IsNullOrEmpty(BinanceApiKey))
+            Debug.WriteLine($"[VALIDATION] Проверяем настройки бирж:");
+            Debug.WriteLine($"[VALIDATION] Binance - Enabled: {IsBinanceEnabled}, ApiKey пустой: {string.IsNullOrEmpty(BinanceApiKey)}, ApiSecret пустой: {string.IsNullOrEmpty(BinanceApiSecret)}");
+
+            if (IsBinanceEnabled && (string.IsNullOrEmpty(BinanceApiKey) || string.IsNullOrEmpty(BinanceApiSecret)))
             {
-                throw new InvalidOperationException("Необходимо указать API ключ для Binance");
+                Debug.WriteLine($"[VALIDATION] ОШИБКА: Binance включена, но ключи не настроены");
+                throw new InvalidOperationException("Необходимо указать API ключ и Secret ключ для Binance");
+            }
+            else if (IsBinanceEnabled)
+            {
+                Debug.WriteLine($"[VALIDATION] Binance настройки корректны");
             }
 
             if (IsBybitEnabled && string.IsNullOrEmpty(BybitApiKey))
@@ -326,26 +343,35 @@ namespace CryptoFundingMonitor.WPF.ViewModels
         /// </summary>
         private async Task MonitoringLoopAsync(CancellationToken cancellationToken)
         {
+            Debug.WriteLine($"[MONITORING] === ЗАПУСК ОСНОВНОГО ЦИКЛА МОНИТОРИНГА ===");
+            Debug.WriteLine($"[MONITORING] IsMonitoring: {IsMonitoring}");
+            Debug.WriteLine($"[MONITORING] CancellationToken.IsCancellationRequested: {cancellationToken.IsCancellationRequested}");
+
             try
             {
                 while (IsMonitoring && !cancellationToken.IsCancellationRequested)
                 {
+                    Debug.WriteLine($"[MONITORING] Начинаем итерацию цикла мониторинга");
                     try
                     {
                         // Проверяем активные биржи и отправляем уведомления
                         await CheckAndSendNotificationsAsync();
 
+                        Debug.WriteLine($"[MONITORING] Итерация цикла мониторинга завершена успешно");
                         // Ждем 1 минуту перед следующей проверкой
                         await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                        Debug.WriteLine($"[MONITORING] Ждем следующую итерацию...");
                     }
                     catch (TaskCanceledException)
                     {
+                        Debug.WriteLine($"[MONITORING] Задача была отменена - выходим из цикла");
                         // Задача была отменена - выходим из цикла
                         break;
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Ошибка в цикле мониторинга: {ex.Message}");
+                        Debug.WriteLine($"[MONITORING] Ошибка в цикле мониторинга: {ex.Message}");
+                        Debug.WriteLine($"[MONITORING] Stack trace: {ex.StackTrace}");
                         // Продолжаем цикл даже при ошибке
                         await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
                     }
@@ -368,14 +394,24 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                 // Проверяем Binance
                 if (IsBinanceEnabled && !string.IsNullOrEmpty(BinanceApiKey))
                 {
+                    Debug.WriteLine($"[BINANCE] === НАЧАЛО ЦИКЛА ПРОВЕРКИ BINANCE ===");
+                    Debug.WriteLine($"[BINANCE] IsBinanceEnabled: {IsBinanceEnabled}");
+                    Debug.WriteLine($"[BINANCE] BinanceApiKey length: {BinanceApiKey.Length}");
+                    Debug.WriteLine($"[BINANCE] BinanceApiSecret length: {BinanceApiSecret.Length}");
+                    Debug.WriteLine($"[BINANCE] BinanceThreshold: {BinanceThreshold}");
+                    Debug.WriteLine($"[BINANCE] _binanceService is null: {_binanceService == null}");
+
                     try
                     {
+                        Debug.WriteLine($"[BINANCE] Вызываем CheckExchangeAndSendNotificationsAsync для Binance");
                         await CheckExchangeAndSendNotificationsAsync(
-                            _binanceService, BinanceApiKey, string.Empty, BinanceThreshold, "Binance");
+                            _binanceService, BinanceApiKey, BinanceApiSecret, BinanceThreshold, "Binance");
+                        Debug.WriteLine($"[BINANCE] CheckExchangeAndSendNotificationsAsync выполнен успешно");
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Ошибка при проверке Binance: {ex.Message}");
+                        Debug.WriteLine($"[BINANCE] ОШИБКА при проверке: {ex.Message}");
+                        Debug.WriteLine($"[BINANCE] Stack trace: {ex.StackTrace}");
                         // Показываем пользователю информацию об ошибке Binance
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -387,10 +423,11 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                             );
                         });
                     }
+                    Debug.WriteLine($"[BINANCE] === КОНЕЦ ЦИКЛА ПРОВЕРКИ BINANCE ===");
                 }
                 else if (IsBinanceEnabled)
                 {
-                    Debug.WriteLine("Binance включена, но API ключ не настроен");
+                    Debug.WriteLine($"[BINANCE] Binance включена, но API ключи не настроены. ApiKey пустой: {string.IsNullOrEmpty(BinanceApiKey)}, ApiSecret пустой: {string.IsNullOrEmpty(BinanceApiSecret)}");
                 }
 
                 // Проверяем Bybit
@@ -440,47 +477,71 @@ namespace CryptoFundingMonitor.WPF.ViewModels
         private async Task CheckExchangeAndSendNotificationsAsync(
             IBrokerApiService brokerService, string apiKey, string apiSecret, decimal threshold, string exchangeName)
         {
+            Debug.WriteLine($"[{exchangeName}] === НАЧАЛО ПРОВЕРКИ БИРЖИ {exchangeName} ===");
+            Debug.WriteLine($"[{exchangeName}] brokerService is null: {brokerService == null}");
+            Debug.WriteLine($"[{exchangeName}] apiKey length: {apiKey.Length}");
+            Debug.WriteLine($"[{exchangeName}] apiSecret length: {apiSecret.Length}");
+            Debug.WriteLine($"[{exchangeName}] threshold: {threshold}");
+
             try
             {
+                Debug.WriteLine($"[{exchangeName}] Получаем данные о ставках финансирования");
                 // Получаем данные о ставках финансирования
                 var signals = await brokerService.GetFundingRatesAsync(apiKey, apiSecret);
 
-                Debug.WriteLine($"DEBUG: Получено {signals.Count()} сигналов от {exchangeName}");
+                // Сортируем сигналы по алфавиту для корректного порядка отправки в Telegram
+                signals = signals.OrderBy(s => s.Pair).ToList();
 
+                Debug.WriteLine($"[{exchangeName}] Получено {signals.Count()} сигналов от {exchangeName}");
+                Debug.WriteLine($"[{exchangeName}] Сигналы отсортированы по алфавиту для корректного порядка отправки");
+                Debug.WriteLine($"[{exchangeName}] Первые 5 пар после сортировки:");
+                for (int i = 0; i < Math.Min(5, signals.Count()); i++)
+                {
+                    Debug.WriteLine($"[{exchangeName}]   {i+1}. {signals.ElementAt(i).Pair} - {signals.ElementAt(i).FundingRate:F6}");
+                }
+
+                int signalIndex = 0;
+                Debug.WriteLine($"[{exchangeName}] Начинаем последовательную обработку {signals.Count()} отсортированных сигналов:");
                 foreach (var signal in signals)
                 {
+                    signalIndex++;
+                    Debug.WriteLine($"[{exchangeName}] [{signalIndex:000}/{signals.Count():000}] Обрабатываем пару: {signal.Pair} (Symbol: {signal.Symbol}, FundingRate: {signal.FundingRate:F6}, Price: {signal.CurrentPrice:F4})");
+
                     // Формируем уникальный ключ для пары в формате "ExchangeName-Symbol"
                     string pairKey = $"{signal.ExchangeName}-{signal.Symbol}";
 
                     // Логируем funding rate для диагностики
-                    Debug.WriteLine($"DEBUG: Проверка пары {pairKey}, Funding Rate: {signal.FundingRate}, Threshold: {threshold}, Условие: {signal.FundingRate} <= {threshold} = {signal.FundingRate <= threshold}");
+                    bool shouldTrigger = threshold < 0 ? signal.FundingRate <= threshold : signal.FundingRate >= threshold;
+                    Debug.WriteLine($"[{exchangeName}] Проверка пары {pairKey}, Funding Rate: {signal.FundingRate:F6}, Threshold: {threshold}, ShouldTrigger: {shouldTrigger}");
 
                     // Проверяем условие срабатывания сигнала
-                    if (signal.FundingRate <= threshold)
+                    if (shouldTrigger)
                     {
                         // Условие выполняется - проверяем, нужно ли отправить сигнал
                         if (!signaledPairs.Contains(pairKey))
                         {
                             // Пара еще не в signaledPairs - отправляем сигнал
                             signaledPairs.Add(pairKey);
+                            Debug.WriteLine($"[{exchangeName}] ОТПРАВКА СИГНАЛА [{signalIndex:000}]: {pairKey}, Funding Rate: {signal.FundingRate:F6}");
                             await SendNotificationsToActiveChannelsAsync(signal);
 
-                            Debug.WriteLine($"Отправлен сигнал для пары: {pairKey}, Funding Rate: {signal.FundingRate}");
+                            Debug.WriteLine($"[{exchangeName}] ✅ Сигнал отправлен для пары: {pairKey}, Funding Rate: {signal.FundingRate:F6}");
                         }
                         else
                         {
-                            Debug.WriteLine($"Сигнал для пары {pairKey} уже был отправлен ранее, пропускаем");
+                            Debug.WriteLine($"[{exchangeName}] Сигнал для пары {pairKey} уже был отправлен ранее, пропускаем");
                         }
                     }
                     else
                     {
                         // Условие НЕ выполняется - проверяем, нужно ли сбросить сигнал
-                        if (signaledPairs.Contains(pairKey))
+                        bool shouldReset = threshold < 0 ? signal.FundingRate > threshold : signal.FundingRate < threshold;
+                        if (signaledPairs.Contains(pairKey) && shouldReset)
                         {
                             // Пара есть в signaledPairs, но условие больше не выполняется - удаляем для будущего сигнала
                             signaledPairs.Remove(pairKey);
 
-                            Debug.WriteLine($"Сброс сигнала для пары: {pairKey}, Funding Rate: {signal.FundingRate} (выше порога)");
+                            Debug.WriteLine($"[{exchangeName}] Сброс сигнала для пары: {pairKey}, Funding Rate: {signal.FundingRate:F6}, Threshold: {threshold}");
                         }
                     }
                 }
@@ -488,6 +549,10 @@ namespace CryptoFundingMonitor.WPF.ViewModels
             catch (Exception ex)
             {
                 Debug.WriteLine($"Ошибка при проверке биржи {exchangeName}: {ex.Message}");
+            }
+            finally
+            {
+                Debug.WriteLine($"[{exchangeName}] === КОНЕЦ ПРОВЕРКИ БИРЖИ {exchangeName} ===");
             }
         }
 
@@ -498,6 +563,17 @@ namespace CryptoFundingMonitor.WPF.ViewModels
         {
             try
             {
+                // Создаем копию сигнала с рассчитанным TakeProfitPrice
+                var signalWithTakeProfit = new FundingRateSignal(
+                    ExchangeName: signal.ExchangeName,
+                    Symbol: signal.Symbol,
+                    Pair: signal.Pair,
+                    CurrentPrice: signal.CurrentPrice,
+                    FundingRate: signal.FundingRate,
+                    TakeProfitPrice: signal.FundingRate < 0 ? signal.CurrentPrice * 1.40m : null, // BUY сигнал: +40%, SELL сигнал: null
+                    Timestamp: signal.Timestamp
+                );
+
                 string tradeBotUrl = IsTradeBotEnabled ? TradeBotUrl : string.Empty;
 
                 // Отправляем в канал 1, если он активен
@@ -507,7 +583,8 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                     {
                         if (long.TryParse(TelegramChannel1Id, out long channel1Id))
                         {
-                            await _notificationService.SendNotificationAsync(signal, channel1Id, tradeBotUrl);
+                            await _notificationService.SendNotificationAsync(signalWithTakeProfit, channel1Id, tradeBotUrl);
+                            Debug.WriteLine($"[NOTIFICATION] Отправлено уведомление в канал 1 для {signal.Pair}");
                         }
                         else
                         {
@@ -528,7 +605,8 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                     {
                         if (long.TryParse(TelegramChannel2Id, out long channel2Id))
                         {
-                            await _notificationService.SendNotificationAsync(signal, channel2Id, tradeBotUrl);
+                            await _notificationService.SendNotificationAsync(signalWithTakeProfit, channel2Id, tradeBotUrl);
+                            Debug.WriteLine($"[NOTIFICATION] Отправлено уведомление в канал 2 для {signal.Pair}");
                         }
                         else
                         {
@@ -541,6 +619,9 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                         // Продолжаем работу даже при ошибке
                     }
                 }
+
+                // Добавляем небольшую задержку между отправками для сохранения порядка
+                await Task.Delay(200); // 200ms задержка между уведомлениями
             }
             catch (Exception ex)
             {

@@ -9,6 +9,7 @@ namespace CryptoFundingMonitor.Core.Models
         string Pair,
         decimal CurrentPrice,
         decimal FundingRate,
+        decimal? TakeProfitPrice,
         DateTime Timestamp
     );
 }

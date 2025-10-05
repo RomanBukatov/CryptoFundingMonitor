@@ -10,25 +10,25 @@ namespace CryptoFundingMonitor.WPF.Converters
     public class PercentToDecimalConverter : IValueConverter
     {
         /// <summary>
-        /// Конвертирует процент в десятичное число (делит на 100)
+        /// Конвертирует десятичное число в процент (умножает на 100)
         /// </summary>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is decimal decimalValue)
             {
-                return (decimalValue / 100m).ToString("F4", culture);
+                return (decimalValue * 100m).ToString("F4", culture);
             }
             return "0.0000";
         }
 
         /// <summary>
-        /// Конвертирует десятичное число в процент (умножает на 100)
+        /// Конвертирует процент в десятичное число (делит на 100)
         /// </summary>
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is string stringValue && decimal.TryParse(stringValue, out decimal decimalValue))
+            if (value is string stringValue && decimal.TryParse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal decimalValue))
             {
-                return decimalValue * 100m;
+                return decimalValue / 100m;
             }
             return 0m;
         }

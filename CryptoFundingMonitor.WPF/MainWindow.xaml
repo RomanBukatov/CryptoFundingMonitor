@@ -58,7 +58,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Margin="0,5,5,0"
-                                     Text="{Binding BinanceThreshold, StringFormat=N2}"
+                                     Text="{Binding BinanceThreshold, Converter={StaticResource PercentToDecimalConverter}, StringFormat=N2}"
                                      ToolTip="Пороговое значение Funding Rate в процентах"/>
                             <TextBlock Grid.Column="1" Text="%" VerticalAlignment="Center"
                                        Margin="0,5,10,0" FontWeight="Bold"/>
@@ -96,7 +96,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Margin="0,5,5,0"
-                                     Text="{Binding BybitThreshold, StringFormat=N2}"
+                                     Text="{Binding BybitThreshold, Converter={StaticResource PercentToDecimalConverter}, StringFormat=N2}"
                                      ToolTip="Пороговое значение Funding Rate в процентах"/>
                             <TextBlock Grid.Column="1" Text="%" VerticalAlignment="Center"
                                        Margin="0,5,10,0" FontWeight="Bold"/>
@@ -134,7 +134,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Margin="0,5,5,0"
-                                     Text="{Binding MexcThreshold, StringFormat=N2}"
+                                     Text="{Binding MexcThreshold, Converter={StaticResource PercentToDecimalConverter}, StringFormat=N2}"
                                      ToolTip="Пороговое значение Funding Rate в процентах"/>
                             <TextBlock Grid.Column="1" Text="%" VerticalAlignment="Center"
                                        Margin="0,5,10,0" FontWeight="Bold"/>

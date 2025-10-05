@@ -45,7 +45,7 @@
              services.AddTransient<IBrokerApiService, BybitApiService>();
              services.AddTransient<IBrokerApiService, BinanceApiService>();
              services.AddTransient<IBrokerApiService, MexcApiService>();
- 
+
              // Регистрируем конкретные типы для получения через DI
              services.AddTransient<BybitApiService>();
              services.AddTransient<BinanceApiService>();

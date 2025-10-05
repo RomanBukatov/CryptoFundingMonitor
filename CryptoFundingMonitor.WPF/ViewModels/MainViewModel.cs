@@ -52,7 +52,7 @@ namespace CryptoFundingMonitor.WPF.ViewModels
         #region Чекбоксы включения бирж
 
         [ObservableProperty]
-        private bool _isBinanceEnabled = true;
+        private bool _isBinanceEnabled = false;
 
         [ObservableProperty]
         private bool _isBybitEnabled = true;
@@ -99,6 +99,16 @@ namespace CryptoFundingMonitor.WPF.ViewModels
         private IBrokerApiService _mexcService;
         private INotificationService _notificationService;
         private CancellationTokenSource _cancellationTokenSource;
+
+        #endregion
+
+        #region Управление отправленными сигналами
+
+        /// <summary>
+        /// Хранилище уже отправленных сигналов для предотвращения спама
+        /// Ключ формируется в формате "ExchangeName-Symbol"
+        /// </summary>
+        private HashSet<string> signaledPairs = new HashSet<string>();
 
         #endregion
 
@@ -290,6 +300,9 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                 _mexcService = null;
                 _notificationService = null;
 
+                // Очищаем HashSet отправленных сигналов для нового цикла мониторинга
+                signaledPairs.Clear();
+
                 IsMonitoring = false;
             }
             catch (Exception ex)
@@ -355,8 +368,29 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                 // Проверяем Binance
                 if (IsBinanceEnabled && !string.IsNullOrEmpty(BinanceApiKey))
                 {
-                    await CheckExchangeAndSendNotificationsAsync(
-                        _binanceService, BinanceApiKey, string.Empty, BinanceThreshold, "Binance");
+                    try
+                    {
+                        await CheckExchangeAndSendNotificationsAsync(
+                            _binanceService, BinanceApiKey, string.Empty, BinanceThreshold, "Binance");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Ошибка при проверке Binance: {ex.Message}");
+                        // Показываем пользователю информацию об ошибке Binance
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(
+                                $"Ошибка Binance API: {ex.Message}\n\nПроверьте настройки API ключей или отключите Binance в настройках.",
+                                "Ошибка Binance API",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning
+                            );
+                        });
+                    }
+                }
+                else if (IsBinanceEnabled)
+                {
+                    Debug.WriteLine("Binance включена, но API ключ не настроен");
                 }
 
                 // Проверяем Bybit
@@ -365,12 +399,33 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                     await CheckExchangeAndSendNotificationsAsync(
                         _bybitService, BybitApiKey, string.Empty, BybitThreshold, "Bybit");
                 }
+                else if (IsBybitEnabled)
+                {
+                    Debug.WriteLine("Bybit включена, но API ключ не настроен");
+                }
 
                 // Проверяем MEXC
                 if (IsMexcEnabled && !string.IsNullOrEmpty(MexcApiKey))
                 {
-                    await CheckExchangeAndSendNotificationsAsync(
-                        _mexcService, MexcApiKey, string.Empty, MexcThreshold, "MEXC");
+                    try
+                    {
+                        await CheckExchangeAndSendNotificationsAsync(
+                            _mexcService, MexcApiKey, string.Empty, MexcThreshold, "MEXC");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Критическая ошибка MEXC API: {ex.Message}");
+                        // Показываем пользователю информацию об ошибке MEXC
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(
+                                $"MEXC API недоступен или возвращает некорректные данные: {ex.Message}\n\nРекомендуется отключить MEXC в настройках для стабильной работы.",
+                                "Ошибка MEXC API",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning
+                            );
+                        });
+                    }
                 }
             }
             catch (Exception ex)
@@ -390,25 +445,49 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                 // Получаем данные о ставках финансирования
                 var signals = await brokerService.GetFundingRatesAsync(apiKey, apiSecret);
 
+                Debug.WriteLine($"DEBUG: Получено {signals.Count()} сигналов от {exchangeName}");
+
                 foreach (var signal in signals)
                 {
+                    // Формируем уникальный ключ для пары в формате "ExchangeName-Symbol"
+                    string pairKey = $"{signal.ExchangeName}-{signal.Symbol}";
+
+                    // Логируем funding rate для диагностики
+                    Debug.WriteLine($"DEBUG: Проверка пары {pairKey}, Funding Rate: {signal.FundingRate}, Threshold: {threshold}, Условие: {signal.FundingRate} <= {threshold} = {signal.FundingRate <= threshold}");
+
                     // Проверяем условие срабатывания сигнала
                     if (signal.FundingRate <= threshold)
                     {
-                        await SendNotificationsToActiveChannelsAsync(signal);
+                        // Условие выполняется - проверяем, нужно ли отправить сигнал
+                        if (!signaledPairs.Contains(pairKey))
+                        {
+                            // Пара еще не в signaledPairs - отправляем сигнал
+                            signaledPairs.Add(pairKey);
+                            await SendNotificationsToActiveChannelsAsync(signal);
+
+                            Debug.WriteLine($"Отправлен сигнал для пары: {pairKey}, Funding Rate: {signal.FundingRate}");
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"Сигнал для пары {pairKey} уже был отправлен ранее, пропускаем");
+                        }
+                    }
+                    else
+                    {
+                        // Условие НЕ выполняется - проверяем, нужно ли сбросить сигнал
+                        if (signaledPairs.Contains(pairKey))
+                        {
+                            // Пара есть в signaledPairs, но условие больше не выполняется - удаляем для будущего сигнала
+                            signaledPairs.Remove(pairKey);
+
+                            Debug.WriteLine($"Сброс сигнала для пары: {pairKey}, Funding Rate: {signal.FundingRate} (выше порога)");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Ошибка при проверке биржи {exchangeName}: {ex.Message}");
-
-                // Показываем пользователю информацию об ошибке биржи
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    // Здесь можно добавить более детальную обработку ошибок для каждой биржи
-                    // Например, показать статус ошибки для конкретной биржи
-                });
             }
         }
 

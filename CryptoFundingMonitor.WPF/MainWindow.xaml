@@ -17,12 +17,13 @@
         </Grid.Resources>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+             <RowDefinition Height="Auto"/>
+             <RowDefinition Height="Auto"/>
+             <RowDefinition Height="Auto"/>
+             <RowDefinition Height="Auto"/>
+             <RowDefinition Height="Auto"/>
+             <RowDefinition Height="Auto"/>
+         </Grid.RowDefinitions>
 
         <!-- Секция бирж -->
         <GroupBox Header="Настройки бирж" Grid.Row="0" Margin="0,0,0,10">
@@ -223,6 +224,7 @@
             </Grid>
         </GroupBox>
 
+
         <!-- Панель управления -->
         <Grid Grid.Row="3" Margin="0,20,0,0">
             <Grid.ColumnDefinitions>
@@ -230,19 +232,33 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Статус -->
+            <!-- Статус мониторинга -->
             <Label Grid.Column="0" Content="Статус:" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,10,0"/>
-            
-            <!-- Индикатор-кружок -->
-            <Ellipse Grid.Column="2" Width="30" Height="30" Margin="0,0,15,0"
+
+
+            <!-- Отображение времени -->
+            <TextBlock Grid.Column="1"
+                       Text="{Binding RuntimeDisplay}"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Foreground="{Binding RuntimeIndicatorColor}"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"
+                       ToolTip="Время работы программы"/>
+
+            <!-- Индикатор мониторинга -->
+
+            <Ellipse Grid.Column="4" Width="30" Height="30" Margin="0,0,15,0"
                      Fill="{Binding StatusIndicatorColor}"
                      Stroke="Gray" StrokeThickness="2"
-                     ToolTip="Статус мониторинга"/>
+                     ToolTip="Статус мониторинга и таймера времени работы"/>
 
-            <!-- Кнопка Старт/Стоп -->
-            <Button Grid.Column="3"
+            <!-- Кнопка Старт/Стоп мониторинга -->
+            <Button Grid.Column="5"
                     Content="{Binding IsMonitoring, Converter={StaticResource BoolToStartStopConverter}}"
                     Command="{Binding ToggleMonitoringCommand}"
                     Width="120" Height="35"

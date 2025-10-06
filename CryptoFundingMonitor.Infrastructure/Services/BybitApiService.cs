@@ -32,6 +32,9 @@ namespace CryptoFundingMonitor.Infrastructure.Services
                     {
                         options.ApiCredentials = new ApiCredentials(apiKey, apiSecret);
                     }
+
+                    // Устанавливаем таймаут ожидания ответа в 10 секунд
+                    options.RequestTimeout = TimeSpan.FromSeconds(10);
                 });
 
                 // Получаем информацию о всех торговых парах для линейных фьючерсов (USDT)
@@ -39,6 +42,7 @@ namespace CryptoFundingMonitor.Infrastructure.Services
 
                 if (!symbolsResult.Success)
                 {
+                    Console.WriteLine($"[BYBIT API] Ошибка при получении списка символов: {symbolsResult.Error?.Message}");
                     throw new Exception($"Ошибка при получении списка символов с Bybit: {symbolsResult.Error?.Message}");
                 }
 

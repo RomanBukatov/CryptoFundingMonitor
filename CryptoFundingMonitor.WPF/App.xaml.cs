@@ -55,6 +55,9 @@
              // ВАЖНО: Сервис будет создан один раз и переиспользован
              services.AddSingleton<TelegramNotificationService>();
              services.AddSingleton<INotificationService>(sp => sp.GetRequiredService<TelegramNotificationService>());
+
+             // Регистрируем сервис хранения отправленных сигналов как Singleton
+             services.AddSingleton<ISentSignalsStorageService, SentSignalsStorageService>();
  
              // Регистрируем ViewModel с внедрением зависимостей
              services.AddTransient<MainViewModel>();

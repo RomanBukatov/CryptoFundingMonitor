@@ -89,9 +89,7 @@ namespace CryptoFundingMonitor.Infrastructure.Services
                         Console.WriteLine($"[BINANCE API] Пропускаем установку API credentials - ключи пустые");
                     }
 
-                    // Устанавливаем таймаут ожидания ответа в 30 секунд
-                    options.RequestTimeout = TimeSpan.FromSeconds(30);
-                    Console.WriteLine($"[BINANCE API] Установлен таймаут запроса: 30 секунд");
+                    // Таймаут не устанавливается - используем значение по умолчанию Binance клиента
                 });
 
                 Console.WriteLine($"[BINANCE API] Клиент Binance создан успешно");
@@ -200,16 +198,6 @@ namespace CryptoFundingMonitor.Infrastructure.Services
 
                         // Логируем funding rate для диагностики
                         Console.WriteLine($"DEBUG: {ticker.Symbol} - FundingRate: {fundingRateInfo.FundingRate}, Type: {fundingRateInfo.FundingRate.GetType()}");
-
-                        signals.Add(new FundingRateSignal(
-                            ExchangeName: ExchangeName,
-                            Symbol: baseSymbol,
-                            Pair: ticker.Symbol,
-                            CurrentPrice: currentPrice,
-                            FundingRate: fundingRateInfo.FundingRate,
-                            TakeProfitPrice: null,
-                            Timestamp: DateTime.UtcNow
-                        ));
 
                         var signal = new FundingRateSignal(
                             ExchangeName: ExchangeName,

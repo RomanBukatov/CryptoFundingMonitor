@@ -27,11 +27,17 @@ namespace CryptoFundingMonitor.Infrastructure.Services
             {
                 using var httpClient = new HttpClient();
                 httpClient.BaseAddress = new Uri(BaseUrl);
+                httpClient.Timeout = TimeSpan.FromSeconds(10); // Таймаут для надежности
+
+                // Дополнительные параметры для надежности в режиме публикации
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("CryptoFundingMonitor/1.0");
+                httpClient.DefaultRequestHeaders.ConnectionClose = false; // Keep-Alive для производительности
 
                 // Получаем информацию по всем фьючерсным контрактам
                 var tickerResponse = await httpClient.GetAsync("/api/v1/contract/ticker");
                 if (!tickerResponse.IsSuccessStatusCode)
                 {
+                    Console.WriteLine($"[MEXC API] Ошибка HTTP запроса: {tickerResponse.StatusCode}");
                     throw new Exception($"Ошибка при получении данных с MEXC: {tickerResponse.StatusCode}");
                 }
 

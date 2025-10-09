@@ -699,7 +699,7 @@ namespace CryptoFundingMonitor.WPF.ViewModels
                     Pair: signal.Pair,
                     CurrentPrice: signal.CurrentPrice,
                     FundingRate: signal.FundingRate,
-                    TakeProfitPrice: signal.FundingRate < 0 ? signal.CurrentPrice * 1.40m : null, // BUY сигнал: +40%, SELL сигнал: null
+                    TakeProfitPrice: signal.FundingRate < 0 ? signal.CurrentPrice * 1.10m : null, // BUY сигнал: +10%, SELL сигнал: null
                     Timestamp: signal.Timestamp
                 );
 
